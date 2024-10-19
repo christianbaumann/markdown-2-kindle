@@ -2,10 +2,14 @@ import pypandoc
 import os
 import smtplib
 import json
+import logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
 from email.mime.text import MIMEText
+
+# Setup basic logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def load_config(config_file):
     """
@@ -23,6 +27,7 @@ def get_md_files_in_directory(directory):
         for file in files:
             if file.endswith(".md"):
                 md_files.append(os.path.join(root, file))
+    logging.info(f"Found {len(md_files)} markdown files in directory {directory}")
     return md_files
 
 def convert_md_to_epub(md_file, output_epub):
@@ -31,8 +36,9 @@ def convert_md_to_epub(md_file, output_epub):
     """
     try:
         pypandoc.convert_file(md_file, 'epub', outputfile=output_epub)
+        logging.info(f"Successfully converted {md_file} to {output_epub}")
     except Exception as e:
-        pass
+        logging.error(f"Error converting {md_file} to EPUB: {e}")
 
 def send_email_with_attachment(epub_file, config):
     """
@@ -59,12 +65,14 @@ def send_email_with_attachment(epub_file, config):
         server.login(config['smtp_user'], config['smtp_password'])
         server.sendmail(config['smtp_user'], config['kindle_email'], msg.as_string())
         server.quit()
+        logging.info(f"Successfully sent {epub_file} to {config['kindle_email']}")
     except Exception as e:
-        pass
+        logging.error(f"Error sending {epub_file} to {config['kindle_email']}: {e}")
 
 def main():
     # Load config settings from config.json
     config = load_config('config.json')
+    logging.info("Loaded configuration")
 
     # Define the directory where markdown files are located
     md_directory = config["md_directory"]
@@ -85,8 +93,9 @@ def main():
         # Delete the EPUB file after sending
         try:
             os.remove(output_epub)
+            logging.info(f"Deleted {output_epub} after sending")
         except Exception as e:
-            pass
+            logging.error(f"Error deleting {output_epub}: {e}")
 
 if __name__ == "__main__":
     main()
