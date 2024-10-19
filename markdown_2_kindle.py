@@ -4,6 +4,7 @@ import smtplib
 import json
 import logging
 import subprocess
+import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
@@ -104,8 +105,12 @@ def main():
     config = load_config('config.json')
     logging.info("Loaded configuration")
 
-    # Define the directory where markdown files are located
-    md_directory = config["md_directory"]
+    # Set the markdown directory from ARGV if provided, otherwise use the one from config
+    if len(sys.argv) > 1 and os.path.isdir(sys.argv[1]):
+        md_directory = sys.argv[1]
+        logging.info(f"Using directory from ARGV: {md_directory}")
+    else:
+        md_directory = config["md_directory"]
 
     # Define output directory for EPUB files
     output_directory = config["output_directory"]
