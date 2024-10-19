@@ -30,13 +30,24 @@ def get_md_files_in_directory(directory):
     logging.info(f"Found {len(md_files)} markdown files in directory {directory}")
     return md_files
 
+def extract_title_from_md(md_file):
+    """
+    Extract the first H1 (#) heading from the markdown file as the title.
+    """
+    with open(md_file, 'r', encoding='utf-8') as file:
+        for line in file:
+            if line.startswith('# '):
+                return line[2:].strip()
+    return 'Untitled'  # Fallback if no title is found
+
 def convert_md_to_epub(md_file, output_epub):
     """
-    Convert a markdown file to an EPUB file using pypandoc.
+    Convert a markdown file to an EPUB file using pypandoc, extracting the title from the markdown.
     """
+    title = extract_title_from_md(md_file)
     try:
-        pypandoc.convert_file(md_file, 'epub', outputfile=output_epub)
-        logging.info(f"Successfully converted {md_file} to {output_epub}")
+        pypandoc.convert_file(md_file, 'epub', outputfile=output_epub, extra_args=[f'--metadata=title="{title}"'])
+        logging.info(f"Successfully converted {md_file} to {output_epub} with title '{title}'")
     except Exception as e:
         logging.error(f"Error converting {md_file} to EPUB: {e}")
 
