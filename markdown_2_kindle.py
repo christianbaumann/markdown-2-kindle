@@ -3,6 +3,7 @@ import os
 import smtplib
 import json
 import logging
+import subprocess
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
@@ -52,16 +53,31 @@ def convert_md_to_epub(md_file, output_epub):
     except Exception as e:
         logging.error(f"Error converting {md_file} to EPUB: {e}")
 
-def send_email_with_attachment(epub_file, config):
+def get_git_commit_id(md_directory):
     """
-    Send the EPUB file to the specified Kindle email address via SMTP.
+    Get the latest Git commit ID if the directory is part of a Git repository.
+    """
+    try:
+        commit_id = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=md_directory).strip().decode('utf-8')
+        logging.info(f"Latest commit ID: {commit_id}")
+        return commit_id
+    except subprocess.CalledProcessError:
+        logging.warning(f"{md_directory} is not a Git repository or Git is not installed.")
+        return None
+
+def send_email_with_attachment(epub_file, config, commit_id=None):
+    """
+    Send the EPUB file to the specified Kindle email address via SMTP, with optional Git commit ID in the subject.
     """
     # Create email
     msg = MIMEMultipart()
     msg['From'] = config['smtp_user']
     msg['To'] = config['kindle_email']
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    msg['Subject'] = f'New EPUB for Your Kindle ({current_time})'
+    subject = f'New EPUB for Your Kindle ({current_time})'
+    if commit_id:
+        subject += f' [Commit: {commit_id}]'
+    msg['Subject'] = subject
 
     # Attach the EPUB file
     attachment = MIMEBase('application', 'octet-stream')
@@ -94,6 +110,9 @@ def main():
     output_directory = config["output_directory"]
     os.makedirs(output_directory, exist_ok=True)
 
+    # Check for Git repository and get latest commit ID if available
+    commit_id = get_git_commit_id(md_directory)
+
     # Get all markdown files in the directory
     md_files = get_md_files_in_directory(md_directory)
 
@@ -101,7 +120,7 @@ def main():
     for md_file in md_files:
         output_epub = os.path.join(output_directory, os.path.basename(md_file).replace(".md", ".epub"))
         convert_md_to_epub(md_file, output_epub)
-        send_email_with_attachment(output_epub, config)
+        send_email_with_attachment(output_epub, config, commit_id)
 
         # Delete the EPUB file after sending
         try:
