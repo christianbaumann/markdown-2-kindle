@@ -6,6 +6,7 @@ This project automates the conversion of Markdown (`.md`) files to EPUB format a
 - Automatically scans a directory for Markdown files.
 - Converts each Markdown file to an EPUB file using Pandoc.
 - Sends the EPUB file to your Kindle email via SMTP.
+- Deletes the EPUB file after it has been sent.
 
 ## Requirements
 - [Pandoc](https://pandoc.org/installing.html) must be installed on your system.

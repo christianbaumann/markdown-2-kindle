@@ -82,5 +82,11 @@ def main():
         convert_md_to_epub(md_file, output_epub)
         send_email_with_attachment(output_epub, config)
 
+        # Delete the EPUB file after sending
+        try:
+            os.remove(output_epub)
+        except Exception as e:
+            pass
+
 if __name__ == "__main__":
     main()
