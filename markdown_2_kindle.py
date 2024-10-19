@@ -7,6 +7,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
 from email.mime.text import MIMEText
+from datetime import datetime
 
 # Setup basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -15,7 +16,7 @@ def load_config(config_file):
     """
     Load email and SMTP settings from config.json.
     """
-    with open(config_file, 'r') as file:
+    with open(config_file, 'r', encoding='utf-8') as file:
         return json.load(file)
 
 def get_md_files_in_directory(directory):
@@ -59,7 +60,8 @@ def send_email_with_attachment(epub_file, config):
     msg = MIMEMultipart()
     msg['From'] = config['smtp_user']
     msg['To'] = config['kindle_email']
-    msg['Subject'] = 'New EPUB for Your Kindle'
+    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    msg['Subject'] = f'New EPUB for Your Kindle ({current_time})'
 
     # Attach the EPUB file
     attachment = MIMEBase('application', 'octet-stream')
