@@ -23,16 +23,22 @@ def load_config(config_file):
 
 def get_changed_md_files(md_directory):
     """
-    Get a list of all new or changed markdown (.md) files since the last commit.
+    Get a list of all new or changed markdown (.md) files since the last commit,
+    excluding files that contain 'prompt' in their filename.
     """
     try:
         changed_files_output = subprocess.check_output(
             ['git', 'diff', '--name-only', 'HEAD'], cwd=md_directory
         ).decode('utf-8').splitlines()
 
-        md_files = [os.path.join(md_directory, file) for file in changed_files_output if file.endswith(".md")]
+        # Filter markdown files and exclude those containing 'prompt'
+        md_files = [
+            os.path.join(md_directory, file)
+            for file in changed_files_output
+            if file.endswith(".md") and "prompt" not in file
+        ]
 
-        logging.info(f"Found {len(md_files)} changed markdown files since the last commit")
+        logging.info(f"Found {len(md_files)} changed markdown files (excluding 'prompt') since the last commit")
         return md_files
     except subprocess.CalledProcessError:
         logging.warning(f"{md_directory} is not a Git repository or Git is not installed.")
@@ -116,6 +122,7 @@ def main():
         logging.info(f"Using directory from ARGV: {md_directory}")
     else:
         md_directory = config["md_directory"]
+        logging.info(f"Using directory from config: {md_directory}")
 
     # Define output directory for EPUB files
     output_directory = config["output_directory"]
