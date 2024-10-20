@@ -21,17 +21,22 @@ def load_config(config_file):
     with open(config_file, 'r', encoding='utf-8') as file:
         return json.load(file)
 
-def get_md_files_in_directory(directory):
+def get_changed_md_files(md_directory):
     """
-    Get a list of all markdown (.md) files in the specified directory.
+    Get a list of all new or changed markdown (.md) files since the last commit.
     """
-    md_files = []
-    for root, dirs, files in os.walk(directory):
-        for file in files:
-            if file.endswith(".md"):
-                md_files.append(os.path.join(root, file))
-    logging.info(f"Found {len(md_files)} markdown files in directory {directory}")
-    return md_files
+    try:
+        changed_files_output = subprocess.check_output(
+            ['git', 'diff', '--name-only', 'HEAD'], cwd=md_directory
+        ).decode('utf-8').splitlines()
+
+        md_files = [os.path.join(md_directory, file) for file in changed_files_output if file.endswith(".md")]
+
+        logging.info(f"Found {len(md_files)} changed markdown files since the last commit")
+        return md_files
+    except subprocess.CalledProcessError:
+        logging.warning(f"{md_directory} is not a Git repository or Git is not installed.")
+        return []
 
 def extract_title_from_md(md_file):
     """
@@ -119,11 +124,15 @@ def main():
     # Check for Git repository and get latest commit ID if available
     commit_id = get_git_commit_id(md_directory)
 
-    # Get all markdown files in the directory
-    md_files = get_md_files_in_directory(md_directory)
+    # Get all changed markdown files in the directory since the last commit
+    changed_md_files = get_changed_md_files(md_directory)
 
-    # Convert each markdown file to EPUB and send via email
-    for md_file in md_files:
+    if not changed_md_files:
+        logging.info("No new or changed markdown files to process.")
+        return
+
+    # Convert each changed markdown file to EPUB and send via email
+    for md_file in changed_md_files:
         output_epub = os.path.join(output_directory, os.path.basename(md_file).replace(".md", ".epub"))
         title = convert_md_to_epub(md_file, output_epub)
         send_email_with_attachment(output_epub, config, commit_id, title)
