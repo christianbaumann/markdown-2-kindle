@@ -57,10 +57,14 @@ def extract_title_from_md(md_file):
 def convert_md_to_epub(md_file, output_epub):
     """
     Convert a markdown file to an EPUB file using pypandoc, extracting the title from the markdown.
+    Apply custom CSS to ensure no background color is used.
     """
     title = extract_title_from_md(md_file)
+    css_file = 'epub-style.css'
     try:
-        pypandoc.convert_file(md_file, 'epub', outputfile=output_epub, extra_args=[f'--metadata=title="{title}"'])
+        pypandoc.convert_file(md_file, 'epub', outputfile=output_epub, extra_args=[
+            f'--metadata=title="{title}"', f'--css={css_file}'
+        ])
         logging.info(f"Successfully converted {md_file} to {output_epub} with title '{title}'")
     except Exception as e:
         logging.error(f"Error converting {md_file} to EPUB: {e}")
