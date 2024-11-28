@@ -1,9 +1,7 @@
 {
-  "md_directory": "path/to/your/markdown/files",
-  "output_directory": "path/to/output/epub/files",
-  "kindle_email": "your-kindle-email@kindle.com",
-  "smtp_server": "smtp.gmail.com",
+  "kindle_email": "chriss713@gmail.com",
+  "smtp_server": "w006fb3f.kasserver.com",
   "smtp_port": 587,
-  "smtp_user": "your-email@gmail.com",
-  "smtp_password": "your-email-password"
+  "smtp_user": "kindle@christianbaumann.dev",
+  "smtp_password": "ZNxX2EXFcqZEuUGmMSEb"
 }
